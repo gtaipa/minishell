@@ -9,7 +9,7 @@ TARGET = parse
 # Ficheiros de código fonte e objetos
 SRCS = main.c parse.c
 OBJS = $(SRCS:.c=.o)
-HEADERS = header.h 
+HEADERS = header.h
 
 # Regra principal (padrão)
 all: $(TARGET)
