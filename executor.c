@@ -9,7 +9,7 @@
 void execute_command(void) {
  pid_t pid;
  if (command_list == NULL ||  command_list->name == NULL) {
- return NULL; // Nenhum comando para executar
+ return ; // Nenhum comando para executar
 
  }  
  // vai buscar o pid atual 
@@ -40,7 +40,7 @@ if (waitpid(pid, &status, 0) == -1) {
         exit(EXIT_FAILURE);
     }
 
-
+    
 }
 
 
