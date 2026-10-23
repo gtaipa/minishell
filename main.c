@@ -38,6 +38,7 @@ int main(int argc, const char *argv[]) {
 
         
         parse_line(line);
+        execute_command();
         print_command_list();
         free_command_list();
         

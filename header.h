@@ -5,7 +5,8 @@
  *  Created by Pedro Sobral on 06/10/26.
  *
  */
-
+#ifndef HEADER_H
+#define HEADER_H
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -26,7 +27,9 @@ typedef struct command {
 extern CMD *command_list;
 
 
-CMD *insert_command();
+CMD *insert_command(void);
 void free_command_list();
 void print_command_list();
 void parse_line(char *);
+void execute_command(void);
+#endif
