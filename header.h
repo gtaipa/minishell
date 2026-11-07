@@ -29,6 +29,7 @@ extern CMD *command_list;
 
 CMD *insert_command(void);
 void free_command_list();
+
 void print_command_list();
 void parse_line(char *);
 void execute_command(void);
