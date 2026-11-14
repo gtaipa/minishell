@@ -33,4 +33,7 @@ void free_command_list();
 void print_command_list();
 void parse_line(char *);
 void execute_command(void);
+void apply_redirections(CMD *cmd);
+void execute_pipeline(void);
+void run_command(void);
 #endif
