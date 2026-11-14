@@ -3,79 +3,68 @@
 #include "header.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <string.h>
-// executa os comandos armazenados na lista encadeada, lidando com redirecionamentos e pipelines
-void execute_command(void) {
- pid_t pid;
- if (command_list == NULL ||  command_list->name == NULL) {
- return ; // Nenhum comando para executar
 
- }  
- // vai buscar o pid atual 
-pid = getpid(); 
-int i =0;
-// conta o número de argumentos do comando atual
-while (command_list->argv[i] != NULL) {
-    i++;
+void handler (int sig ) {
+    while (waitpid(-1, NULL, WNOHANG) > 0); // Recolhe o filho que terminou
+    printf("Filho terminado (SIGCHLD recebido)\n");
+   
 }
-// se o último argumento for '&', significa que o comando deve ser executado em segundo plano
-if (i > 0 && strcmp(command_list->argv[i - 1], "&") == 0) {
-  
-    // Se o último argumento for '&', significa que o comando deve ser executado em segundo plano
-    // Remove o '&' da lista de argumentos
-    command_list->argv[i - 1] = NULL; // Remove o '&'
-    // Cria um novo processo filho para executar o comando em segundo plano
+
+// executa um comando simples, em primeiro ou em segundo plano ('&')
+void execute_command(void) {
+    pid_t pid;
+    int background = 0;
+    int i = 0;
+
+    if (command_list == NULL || command_list->name == NULL) {
+        return; // nenhum comando para executar
+    }
+
+    // conta o numero de argumentos do comando
+    while (command_list->argv[i] != NULL) {
+        i++;
+    }
+
+    // se o ultimo argumento for '&', o comando corre em segundo plano
+    if (i > 1 && strcmp(command_list->argv[i - 1], "&") == 0) {
+        background = 1;
+        free(command_list->argv[i - 1]); // remove o '&' dos argumentos
+        command_list->argv[i - 1] = NULL;
+    }
+
     pid = fork();
     if (pid < 0) {
         perror("Erro ao criar processo filho com fork!");
-        exit(EXIT_FAILURE);
+        return;
     }
+
+    // processo filho
     if (pid == 0) {
-        // Processo filho
-        // Executa o comando usando execvp e verifica se ocorreu algum erro
-        if (execvp(command_list->name, command_list->argv) == -1) {
-            perror("Erro ao executar o comando com execvp!");
-            exit(EXIT_FAILURE); 
-        }
-    } else {
-        // Processo pai
-        // Não espera pelo filho,  imprime uma mensagem a dizer o que o comando foi executado em segundo plano
-        printf("Comando '%s' executado em segundo plano (PID: %d)\n", command_list->name, pid);
-       signal(SIGCHLD,SIG_IGN);// Ignora o sinal SIGCHLD para evitar processos zumbis
-        return; // Retorna imediatamente sem esperar pelo filho
-    }
-
-
-}
-pid=fork(); // cria um novo processo filho
-if (pid < 0) {
-    perror("Erro ao criar processo filho com fork!");
-}
-// processo filho
-else if (pid ==0){
-
- if (execvp(command_list->name, command_list->argv) == -1) {
+        signal(SIGINT, SIG_DFL); // o filho volta a aceitar ctrl + c e ctrl + z
+        signal(SIGTSTP, SIG_DFL);
+        execvp(command_list->name, command_list->argv);
         perror("Erro ao executar o comando com execvp!");
-        exit(EXIT_FAILURE); 
-    }
-}
-
-// processo pai 
-else {
-// fica a espera que o filho termine 
-
-int status;
-// espera pelo processo filho e verifica se ocorreu algum erro
-if (waitpid(pid, &status, 0) == -1) {
-        perror("Erro na recolha do filho \n");
         exit(EXIT_FAILURE);
     }
 
-    
-}
+    // processo pai
+    if (background) {
+        // nao espera pelo filho
+        printf("Comando '%s' executado em segundo plano (PID: %d)\n", command_list->name, pid);
+        signal(SIGCHLD, handler); // Vai executar a rotina de atendimento programada
+        signal(SIGINT, SIG_IGN); // Ignora o ctrl + c
+        signal(SIGTSTP, SIG_IGN); // Ignora o ctrl + z
+        return;
+    }
 
-
-
+    // espera que o filho termine
+    // (ECHILD acontece quando o SIGCHLD esta a ser ignorado: o filho ja foi recolhido)
+    if (waitpid(pid, NULL, 0) == -1 && errno != ECHILD) {
+        perror("Erro na recolha do filho com waitpid!");
+    }
 }

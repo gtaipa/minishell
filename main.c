@@ -7,10 +7,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 
 
 int main(int argc, const char *argv[]) {
+
+// 1. Variáveis para as regras dos sinais
+    struct sigaction sa_chld, sa_ign;
+
+    
+    sa_chld.sa_handler = handler; // Aponta para o handler (com waitpid WNOHANG)
+    sigemptyset(&sa_chld.sa_mask);
+    sa_chld.sa_flags = SA_RESTART; // Evita que a shell vá abaixo se for interrompida
+    sigaction(SIGCHLD, &sa_chld, NULL);
+
+    
+    sa_ign.sa_handler = SIG_IGN;  // Ação: Ignorar
+    sigemptyset(&sa_ign.sa_mask);
+    sa_ign.sa_flags = 0;
+    sigaction(SIGINT, &sa_ign, NULL);  // Aplica ao Ctrl+C
+    sigaction(SIGTSTP, &sa_ign, NULL); // Aplica ao Ctrl+Z
+
     char *line;
     
     while (1) {
