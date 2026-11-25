@@ -6,6 +6,12 @@ void run_command(void) {
         return; // nenhum comando para executar
     }
 
+    // builtins executam no processo pai (apenas quando não há pipe)
+    if (command_list->next == NULL && is_builtin(command_list)) {
+        execute_builtin(command_list);
+        return;
+    }
+
     // comando simples, sem pipes nem redirecionamentos (inclui o '&')
     if (command_list->next == NULL && command_list->infile == NULL
         && command_list->outfile == NULL && command_list->errfile == NULL) {

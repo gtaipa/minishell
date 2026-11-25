@@ -59,7 +59,6 @@ int main(int argc, const char *argv[]) {
         run_command();
         print_command_list();
         free_command_list();
-        
         free(line); // Liberta a memória alocada por readline
     }
     

@@ -7,7 +7,7 @@ LDFLAGS = -lreadline
 TARGET = parse
 
 # Ficheiros de código fonte e objetos
-SRCS = main.c parse.c executor.c redirect.c pipeline.c run.c
+SRCS = main.c parse.c executor.c redirect.c pipeline.c run.c builtins.c signals.c
 OBJS = $(SRCS:.c=.o)
 HEADERS = header.h
 

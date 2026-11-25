@@ -11,7 +11,7 @@
 
 void handler (int sig ) {
     while (waitpid(-1, NULL, WNOHANG) > 0); // Recolhe o filho que terminou
-    printf("Filho terminado (SIGCHLD recebido)\n");
+    //printf("Filho terminado (SIGCHLD recebido)\n"); 
    
 }
 
